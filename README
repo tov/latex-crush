@@ -1,26 +1,40 @@
 The crush Package
 
-To build the PDF documentation and style file, merely run
+SYNOPSIS
 
-    % make
+    This package provides macros that are useful when text or math needs
+    to overlap or spill outside its enclosing box. For example, the
+    \crushr macro sets its argument right-aligned in a 0 width box, so
+    it spills out to the left.
 
-If you don't have make, it's possible to do it manually.  To create the
-style file (crush.sty) and the documentation (crush.pdf), run the
-following sequence of commands:
+    There is also a command \shrinkbox which equalizes the line lengths
+    of its argument, including the last line. This is useful, for
+    example, to make centered titles look good without resorting to
+    manual line breaks.
 
-    latex crush.ins
-    latex crush.dtx
-    makeindex -s gind.ist crush.idx
-    makeindex -s gglo.ist -o crush.gls crush.glo
-    latex crush.dtx
-    pdflatex crush.dtx
+BUILDING
 
-If you only want to build the style file, and not the documentation,
-only the first command (latex crush.ins) is necessary.
+    To build the PDF documentation and style file, merely run
 
-The documentation is also available on the web at
-http://www.ccs.neu.edu/home/tov/code/latex/
+        % make
+
+    If you don't have make, it's possible to do it manually.  To create
+    the style file (crush.sty) and the documentation (crush.pdf), run
+    the following sequence of commands:
+
+        latex crush.ins
+        latex crush.dtx
+        makeindex -s gind.ist crush.idx
+        makeindex -s gglo.ist -o crush.gls crush.glo
+        latex crush.dtx
+        pdflatex crush.dtx
+
+    If you only want to build the style file, and not the documentation,
+    only the first command (latex crush.ins) is necessary.
+
+    The documentation is also available on the web at
+    http://www.ccs.neu.edu/home/tov/code/latex/
 
 Jesse A. Tov
 tov@ccs.neu.edu
-Fri Jul 29 15:41:15 EDT 2011
+Fri, 29 Jul 2011 15:49:56 -0400
