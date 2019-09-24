@@ -1,0 +1,599 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2011 by Jesse A. Tov <tov@ccs.neu.edu>
+% ----------------------------------------------------
+% 
+% This file may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.2
+% of this license or (at your option) any later version.
+% The latest version of this license is in:
+%
+%    http://www.latex-project.org/lppl.txt
+%
+% and version 1.2 or later is part of all distributions of LaTeX 
+% version 1999/12/01 or later.
+%
+% ------------------------------------------------------------------
+% This is a LaTeX package to make it easy to refer to nested labels
+% using both an outer number (such as a theorem number) and an inner
+% number (such as an item in an enumeration).
+% ------------------------------------------------------------------
+%
+%   *** The package file:
+%<package>\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+%<package>\ProvidesPackage{crush}[2011/07/29 v0.2 (box crushing)]
+%
+%   *** The driver file:
+%<driver>\NeedsTeXFormat{LaTeX2e}
+%
+%   *** date, version, and stuff:
+%\fi
+%\ProvidesFile{crush}[2011/07/29 v0.2 (box crushing)]
+% \changes{v0.2}{2011/07/29}{Initial documented release}
+%
+% \CheckSum{273}
+% \CharacterTable
+%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+%
+% \iffalse
+%
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{crush} \relax
+\usepackage{hypdoc}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{crush.dtx}
+  \PrintChanges
+  \PrintIndex
+\end{document}
+%</driver>
+% \fi
+%
+% \GetFileInfo{crush}
+%
+% \DoNotIndex{\newcommand,\newenvironment,\def,\relax,\do}
+% \DoNotIndex{\if,\ifx,\else,\fi,\providecommand,\let,\global,\ignorespaces}
+% \DoNotIndex{\@undefined,\expandafter,\@for,\@ifnextchar,\addtolength}
+% \DoNotIndex{\aftergroup,\begin,\dp,\ht,\wd,\end,\ifdim}
+% 
+% {\catcode`\|=0 \catcode`\\=12
+%  |gdef|bslash{\}}
+% \makeatletter\relax
+% \newcommand{\usemacro}[2][altusage]{\relax
+%   \texttt{\bslash#2}\relax
+%   \indexmacro[#1]{#2}\relax
+% }
+% \newcommand{\defmacro}[2][usage]{\relax
+%   \usemacro[#1]{#2}\relax
+% }
+% \newcommand{\indexmacro}[2][usage]{\relax
+%   \index{#2=\string\verb!*+\bslash#2+\string|#1}\relax
+% }
+% \newcommand{\altusage}[1]{\emph{(#1)}}
+%
+% {
+% \makeatletter
+% \global\let\doc@old@tabular\tabular
+% \global\def\doctabular{\begingroup\catcode`\|=12\relax\doc@tabular}
+% \global\def\doc@tabular#1{\endgroup\doc@old@tabular{#1}}
+% }
+% \let\enddoctabular\endtabular
+% 
+% {
+% \catcode`\|=12\relax
+% \newenvironment{decl}
+%     {\leavevmode\trivlist\item
+%      \begin{tabular}{|l|}\hline\ignorespaces}
+%     {\\\hline\end{tabular}\endtrivlist}
+% \global\let\decl\decl
+% \global\let\enddecl\enddecl
+% }
+%
+% \newcounter{macrosenv}
+% \newenvironment{macros}[1]
+%   {\setcounter{macrosenv}{0}
+%    \@for\@each@macro:=#1\do{
+%      \addtocounter{macrosenv}{1}
+%      \expandafter\macro\expandafter{\csname\@each@macro\endcsname}
+%    }}
+%   {\@whilenum\value{macrosenv}>0\do{
+%      \addtocounter{macrosenv}{-1}
+%      \endmacro
+%    }}
+%
+% \title{The \textsf{crush} package}
+% \author{Jesse A. Tov \\ \texttt{tov@ccs.neu.edu}}
+% \date{This document
+%   corresponds to \textsf{\filename}~\fileversion, dated \filedate.}
+% 
+% \maketitle
+%
+% \tableofcontents
+%
+% \section{Introduction}
+%
+% The purpose of this package is to provide several methods
+% for making boxes smaller, which extend (and someone overlap with)
+% \LaTeX's \usemacro{llap} and \usemacro{rlap} commands.
+% Most provided commands deal with making boxes of width |0pt|,
+% while anchoring the box in a specified place.
+% For example, consider the following:
+%
+% \medskip
+% \begin{center}
+% \begin{doctabular}{|c|c|}
+%     \hline
+%     \kern1in\emph{To get\ldots}\kern1in & \emph{type\ldots} \\
+%     \hline
+%     (\crushl{Hello, world!})
+%     & |(|\usemacro{crushl}|{Hello, world!})| \\
+%     (\crushr{Hello, world!})
+%     & |(|\usemacro{crushr}|{Hello, world!})| \\
+%     (\crushc{Hello, world!})
+%     & |(|\usemacro{crushc}|{Hello, world!})| \\
+%     $(\crushl{3x^2 + 4x - 2})$
+%     & |$(|\usemacro{crushl}|{3x^2 + 4x - 2})$| \\
+%     $(\crushr{3x^2 + 4x - 2})$
+%     & |$(|\usemacro{crushr}|{3x^2 + 4x - 2})$| \\
+%     $(\crushc{3x^2 + 4x - 2})$
+%     & |$(|\usemacro{crushc}|{3x^2 + 4x - 2})$| \\
+%     $3^{\crushl{x + y}} + z$ &
+%     |$3^{|\usemacro{crushl}|{x + y}} + z$| %     \\
+%     \fbox{\crushl[1em]{Hello!}}
+%     & |\fbox{|\usemacro{crushl}|[1em]{Hello!}}| \\[2pt]
+%     \hline
+% \end{doctabular}
+% \end{center}
+%
+% There is also a command for minimizing the width of a box subject to
+% not increasing its height. For example, to get this:
+% \begin{quotation}
+% \mbox{}\hfill
+% \shrinkbox{\raggedleft Whereas recognition of the inherent dignity and of the
+% equal and inalienable rights of all members of the human family is the
+% foundation of freedom, justice and peace in the world, \ldots}
+% \end{quotation}
+% \ldots write this:
+% \begin{verbatim}
+% \mbox{}\hfill\shrinkbox{\raggedleft
+% Whereas recognition of the inherent dignity and of the equal and
+% inalienable rights of all members of the human family is the
+% foundation of freedom, justice and peace in the world, \ldots}
+% \end{verbatim}
+% In this case, \usemacro{shrinkbox} found the narrowest box in which
+% the given text fits on 3 lines, since given the space available it
+% could not fit on \emph{fewer} than 3 lines.
+% 
+% \section{Command Reference}
+% 
+% \begin{decl}
+%   \defmacro{crushl} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{crushr} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{crushc} \oarg{dimen} \marg{text}
+% \end{decl}
+% These commands typeset \meta{text} in a horizontal box with
+% width \meta{dimen}, which defaults to |0pt|.  If the natural size
+% of \meta{text} exceeds \meta{dimen}, then the text will extend beyond
+% the box, which means it is likely to overlap the surrounding text. The
+% direction of the overhang is determined by the choice of command:
+% \begin{description}
+%   \item{|\crushl|} anchors the \emph{left} edge of the text to the left edge
+%       of the box, which may cause it to hang out to the right.
+%   \item{|\crushr|} anchors the \emph{right} edge of the text to the
+%   right edge of the box, which may cause it to hang out to the left.
+%   \item{|\crushc|} anchors the \emph{center} of the text to the
+%   center of the box, which may cause the text to hang out to both
+%   sides.
+% \end{description}
+% 
+% \begin{decl}
+%   \defmacro{uncrushl} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{uncrushr} \oarg{dimen} \marg{text}
+% \end{decl}
+% These commands kern by the width of \meta{text}, adjusted by
+% \meta{dimen}, which defaults to |0pt|.
+% In particular, |\uncrushl|\oarg{dimen}\marg{text} moves to the left by
+% the width of \meta{text} less \oarg{dimen};
+% |\uncrushr|\oarg{dimen}\marg{text} moves to the right by
+% the width of \meta{text} plus \oarg{dimen}.
+% (|\uncrushr|\marg{text} is equivalent to
+% \usemacro{phantom}\marg{text}.)
+%
+% \begin{decl}
+%   \defmacro{vcrush} \oarg{pos} \marg{width} \marg{text}
+% \end{decl}
+% This command is for crushing vertical-mode text.  It sets \meta{text}
+% in a box of width \meta{width} (in the style of the
+% |minipage|\index{minipage=\verb!*+minipage+|usage} \iffalse!\fi
+% environment).  It then crushes the box to width and height |0px|.
+% The \meta{pos} argument specifies where with respect to the text the
+% new baseline of the box should be. It accepts all the same positions
+% as |minipage|, and an additional one: |T|, which puts the baseline at
+% the top of the first line of text in the box (whereas |t| uses the
+% baseline of the first line in the box as the baseline of the box).
+%
+% \begin{decl}
+%   \defmacro{shrinkbox} \oarg{pos} \oarg{dimen} \marg{text}
+% \end{decl}
+% This command typesets \meta{text} in the narrowest box such that its
+% height does not increase.  The optional argument \meta{dimen} provides
+% the maximum width for the box, which otherwise defaults to
+% \usemacro{linewidth}.  This provides a minimal height for the box, and
+% the width is then minimized until making it narrower still would
+% increase the height.  This may evaluate \meta{text} several times, so
+% any side effects may happen an arbitrary number of times.
+%
+% The optional argument \oarg{pos} gives the vertical position of the
+% text in the box, in the style of \usemacro{parbox}.
+%
+% \begin{decl}
+%   \defmacro{textcrushl} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{textcrushr} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{textcrushc} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{textuncrushl} \oarg{dimen} \marg{text} \\
+%   \hline
+%   \defmacro{textuncrushr} \oarg{dimen} \marg{text}
+% \end{decl}
+% The crushing and uncrushing commands normally select text or math mode
+% automatically, but in case they get confused, these are the same
+% commands specialized for text mode.
+%
+% \begin{decl}
+%   \defmacro{mathcrushl} \oarg{dimen} \marg{math} \\
+%   \hline
+%   \defmacro{mathcrushr} \oarg{dimen} \marg{math} \\
+%   \hline
+%   \defmacro{mathcrushc} \oarg{dimen} \marg{math} \\
+%   \hline
+%   \defmacro{mathuncrushl} \oarg{dimen} \marg{math} \\
+%   \hline
+%   \defmacro{mathuncrushr} \oarg{dimen} \marg{math}
+% \end{decl}
+% These are the commands specialized for math mode.
+%
+% \StopEventually{}
+%
+% \section{Implementation}
+%
+% \subsection{Crushing Boxes}
+%
+% \begin{macro}{\crusher}
+% A box in which to save stuff to crush:
+%    \begin{macrocode}
+\newsavebox{\crusher}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macros}{crushl,crushr,crushc,uncrushl,uncrushr}
+% The main horizontal-mode crushing commands dispatch based on whether
+% we're currently in math mode or text mode:
+%    \begin{macrocode}
+\newcommand\crushl{{%
+  \ifmmode\aftergroup\mathcrushl\else\aftergroup\textcrushl\fi
+}}
+\newcommand\crushr{{%
+  \ifmmode\aftergroup\mathcrushr\else\aftergroup\textcrushr\fi
+}}
+\newcommand\crushc{{%
+  \ifmmode\aftergroup\mathcrushc\else\aftergroup\textcrushc\fi
+}}
+\newcommand\uncrushl{{%
+  \ifmmode\aftergroup\mathuncrushl\else\aftergroup\textuncrushl\fi
+}}
+\newcommand\uncrushr{{%
+  \ifmmode\aftergroup\mathuncrushr\else\aftergroup\textuncrushr\fi
+}}
+%    \end{macrocode}
+% \end{macros}
+%
+% \begin{macros}{mathcrush@helper,m@thcrush@helper}
+% |\mathcrush@helper|\marg{cmd}\marg{math} $\longrightarrow$
+% \meta{cmd}|{$|\meta{style}\meta{math}|$}|, where
+% \meta{style} is the current math style.
+%    \begin{macrocode}
+\newcommand\mathcrush@helper[1]{\mathpalette{\m@thcrush@helper{#1}}}
+\newcommand\m@thcrush@helper[3]{#1{$#2#3$}}
+%    \end{macrocode}
+% \end{macros}
+% \begin{macros}{mathcrushl,mathcrushr,mathcrushc,mathuncrushl,mathuncrushr}
+% These are the math versions of the crushing and uncrushing macros,
+% which are called by the main versions when in math mode.  They use the
+% text versions to do the actual work, using \usemacro{mathcrush@helper}
+% to get the contents back in math mode and in the right size.
+%    \begin{macrocode}
+\newcommand\mathcrushl[1][0pt]{\mathcrush@helper{\textcrushl[#1]}}
+\newcommand\mathcrushr[1][0pt]{\mathcrush@helper{\textcrushr[#1]}}
+\newcommand\mathcrushc[1][0pt]{\mathcrush@helper{\textcrushc[#1]}}
+\newcommand\mathuncrushl[1][0pt]{\mathcrush@helper{\textuncrushl[#1]}}
+\newcommand\mathuncrushr[1][0pt]{\mathcrush@helper{\textuncrushr[#1]}}
+%    \end{macrocode}
+% \end{macros}
+%
+% \begin{macro}{\textcrushl}
+% This is the implementation of |\crushl| for text mode. It sets the
+% text in a box, drops the box in it right away,
+% then kerns backward by its width and adjusts by any kern
+% requested in the optional argument:
+%    \begin{macrocode}
+\newcommand\textcrushl[2][0pt]{%
+  \sbox{\crusher}{#2}%
+  \usebox\crusher
+  \kern-\wd\crusher
+  \kern#1%
+}
+%    \end{macrocode}
+% \end{macro}
+
+% \begin{macro}{\textcrushr}
+% This is the implementation of |\crushr| for text mode. It sets the
+% text in a box, kerns backward by its width, adjusts by any kern
+% requested in the optional argument, and then drops in the box:
+%    \begin{macrocode}
+\newcommand\textcrushr[2][0pt]{%
+  \sbox{\crusher}{#2}%
+  \kern-\wd\crusher
+  \kern#1%
+  \usebox\crusher
+}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macros}{crush@textcrushclen,textcrushc}
+% For |\crushc| we need to do half of the adjustment on each side of
+% actually using the box. We use a dimension register to parse any
+% user-specified adjustment so that we can then multiply that by |0.5|.
+%    \begin{macrocode}
+\newlength{\crush@textcrushclen}
+\newcommand\textcrushc[2][0pt]{%
+  \sbox{\crusher}{#2}%
+  \setlength{\crush@textcrushclen}{#1}%
+  \addtolength{\crush@textcrushclen}{-\wd\crusher}%
+  \kern0.5\crush@textcrushclen
+  \usebox\crusher
+  \kern0.5\crush@textcrushclen
+}
+%    \end{macrocode}
+% \end{macros}
+% \begin{macro}{\textuncrushl}
+% \begin{macro}{\textuncrushr}
+% For uncrushing, we just measure the text and then kern either its
+% width or the negation of its width:
+%    \begin{macrocode}
+\newcommand\textuncrushl[2][0pt]{%
+  \sbox{\crusher}{#2}%
+  \kern-\wd\crusher
+  \kern#1%
+}
+\newcommand\textuncrushr[2][0pt]{%
+  \sbox{\crusher}{#2}%
+  \kern\wd\crusher
+  \kern#1%
+}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+
+% \begin{macro}{\vcrush}
+% This is a little more complicated, as we have to handle the |T|
+% position ourselves, and its necessary to deal with both width and
+% height.
+%    \begin{macrocode}
+\newcommand\vcrush[3][c]{%
+%    \end{macrocode}
+% Start by setting the given text in a |minipage| and saving that in a
+% box. We use the position and width specified by the given arguments.
+%    \begin{macrocode}
+  \sbox\crusher{%
+    \begin{minipage}[#1]{#2}%
+      #3%
+    \end{minipage}%
+  }%
+%    \end{macrocode}
+% Now we're going to create a second box, setting its width again as
+% specified, but we'll use |\vskip|s to adjust the height:
+%    \begin{macrocode}
+  \sbox\crusher{%
+    \vbox{%
+      \setlength{\hsize}{\wd\crusher}%
+      \ifx T#1\relax
+%    \end{macrocode}
+% For |T|, we drop in the box and then skip back upward by both its
+% depth and height, which effectively moves the baseline to the top of
+% the box:
+%    \begin{macrocode}
+        \usebox\crusher
+        \vskip-\ht\crusher
+        \vskip-\dp\crusher
+      \else
+%    \end{macrocode}
+% For anything but |T|, |minipage| already put the baseline in the right
+% place, so we adjust away the height of the box before dropping in the
+% box and the depth afterward:
+%    \begin{macrocode}
+        \vskip-\ht\crusher
+        \usebox\crusher
+        \vskip-\dp\crusher
+      \fi
+    }%
+  }%
+  \usebox\crusher
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Shrinking Boxes}
+%
+% We use binary search on the width of the box, under the constraint
+% that the height does not increase.
+% \begin{macros}{shrinkboxheighttolerance,shrinkboxwidthtolerance}
+% First, we define the tolerances
+% for the search.  We default to a height tolerance of |0.5ex|, because
+% different line breaking may cause slight adjustments in the height of
+% a box without changing the number of lines in the box. The width
+% tolerance of |1pt| means that we should find a box within |1pt| of the
+% narrowest possible box.
+%    \begin{macrocode}
+\newlength{\shrinkboxheighttolerance}
+\newlength{\shrinkboxwidthtolerance}
+\setlength{\shrinkboxheighttolerance}{0.5ex}
+\setlength{\shrinkboxwidthtolerance}{1pt}
+%    \end{macrocode}
+% \end{macros}
+% \begin{macros}{@shrink@box@a,@shrink@box@b}
+% We'll use two boxes in our binary search. At any given time,
+% |\@shrink@box@a| will be narrower than |\@shrink@box@b|. We also maintain
+% the invariant that |\ht\@shink@box@b| doesn't increase above the
+% initial height of the maximum width box.
+%    \begin{macrocode}
+\newsavebox{\@shrink@box@a}
+\newsavebox{\@shrink@box@b}
+%    \end{macrocode}
+% \end{macros}
+% \begin{macros}{@shrink@box@ht,@shrink@box@wd}
+% These are temporaries for when we have to measure and compare boxes:
+%    \begin{macrocode}
+\newdimen\@shrink@box@ht
+\newdimen\@shrink@box@wd
+%    \end{macrocode}
+% \end{macros}
+% \begin{macro}{\shrinkbox}
+% We need to handle two optional arguments. Here we check for the first,
+% \meta{pos}, and dispatch to |\shrinkbox@pos| to receive it if it is
+% supplied, or default it to |c| and the width to |\linewidth|,
+% otherwise.
+%    \begin{macrocode}
+\newcommand\shrinkbox{%
+  \@ifnextchar [
+    \shrinkbox@pos
+    {\shrinkbox@start{c}{\linewidth}}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\shrinkbox@pos}
+% Here we get the optional argument \meta{pos} and check if there's a
+% second, which would be \meta{width}. If the second optional argument
+% isn't supplied, the default is |\linewidth|.
+%    \begin{macrocode}
+\def\shrinkbox@pos[#1]{%
+  \@ifnextchar [
+    {\shrinkbox@width{#1}}
+    {\shrinkbox@start{#1}{\linewidth}}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macro}{\shrinkbox@width}
+% Get the second optional argument.
+%    \begin{macrocode}
+\def\shrinkbox@width#1[#2]{%
+  \shrinkbox@start{#1}{#2}%
+}
+%    \end{macrocode}
+% \end{macro}
+% \begin{macros}{shrinkbox@start,shrink@box@kont}
+% Here we initialize the parameters for the binary search. We start the
+% maximum width as the supplied \meta{width} (which defaults to
+% |\linewidth|, and try setting the text with that width and
+% $\frac{1}{10}$ of that width. We then start the loop, passing it
+% \meta{pos} and \meta{text}, since we will likely have to set the text
+% again.
+%    \begin{macrocode}
+\newcommand\shrinkbox@start[3]{%
+  \setlength{\@shrink@box@wd}{#2}%
+  \sbox\@shrink@box@a{\parbox[#1]{0.1\@shrink@box@wd}{#3}}%
+  \sbox\@shrink@box@b{\parbox[#1]{\@shrink@box@wd}{#3}}%
+  \def\shrink@box@kont{\shrink@box@loop{#1}{#3}}%
+  \shrink@box@kont%
+}
+%    \end{macrocode}
+% \end{macros}
+% \begin{macro}{\shrinkbox@loop}
+% This is the main loop for the binary search.
+%    \begin{macrocode}
+\newcommand\shrink@box@loop[2]{%
+%    \end{macrocode}
+% Get the differences of heights and widths of the two boxes into the
+% two dimension registers.
+% (We rely on the invariant that assume that box |a|
+% is (non-strictly) narrower and taller than box |b|.)
+%    \begin{macrocode}
+  \setlength{\@shrink@box@ht}{\ht\@shrink@box@a}%
+  \addtolength{\@shrink@box@ht}{\dp\@shrink@box@a}%
+  \addtolength{\@shrink@box@ht}{-\ht\@shrink@box@b}%
+  \addtolength{\@shrink@box@ht}{-\dp\@shrink@box@b}%
+  \setlength{\@shrink@box@wd}{\wd\@shrink@box@b}%
+  \addtolength{\@shrink@box@wd}{-\wd\@shrink@box@a}%
+%    \end{macrocode}
+% Check if the heights of the two boxes are within the tolerance.
+% If they are, then we should search narrower, but if the heights are
+% very different, this means the narrow box is too narrow.
+%    \begin{macrocode}
+  \ifdim\@shrink@box@ht<\shrinkboxheighttolerance
+%    \end{macrocode}
+% Check the widths are within the tolerance.  If they are, then the
+% search is done, since the two boxes have met.
+%    \begin{macrocode}
+    \ifdim\@shrink@box@wd<\shrinkboxwidthtolerance
+%    \end{macrocode}
+% \begin{macro}{\shrink@box@kont}
+% We set |\shrink@box@kont| to what we want to do next, which is to
+% use the smaller box (though it shouldn't matter, since they're the
+% same size):
+%    \begin{macrocode}
+      \def\shrink@box@kont{\mbox{\usebox\@shrink@box@a}}%
+%    \end{macrocode}
+% \end{macro}
+% Here the heights are the same but the width are different, so we need
+% to make the wide box narrower. We begin by getting the mean of the
+% width of the boxes in |\@shrink@box@wd|:
+%    \begin{macrocode}
+    \else
+      \setlength{\@shrink@box@wd}{0.5\@shrink@box@wd}%
+      \addtolength{\@shrink@box@wd}{\wd\@shrink@box@a}%
+%    \end{macrocode}
+% Then replace the context of the wider box with a new box of the
+% average width:
+%    \begin{macrocode}
+      \sbox\@shrink@box@b{\parbox[#1]{\@shrink@box@wd}{#2}}%
+    \fi
+%    \end{macrocode}
+% Here the heights are different, so the narrower box needs to get
+% wider. Again we get the mean box width, but we use it to replace the
+% narrower box.
+%    \begin{macrocode}
+  \else
+    \setlength{\@shrink@box@wd}{0.5\@shrink@box@wd}%
+    \addtolength{\@shrink@box@wd}{\wd\@shrink@box@a}%
+    \sbox\@shrink@box@a{\parbox[#1]{\@shrink@box@wd}{#2}}%
+  \fi
+%    \end{macrocode}
+% Back in |\shrinkbox@start|, we initialized |\shrink@box@kont| to run
+% the loop each time. Here, it will recur unless we've determined that
+% it's time to stop and redefined it to actually output the box.
+%    \begin{macrocode}
+  \shrink@box@kont
+}
+%    \end{macrocode}
+% \end{macro}
+% \Finale
+\endinput
