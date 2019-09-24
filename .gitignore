@@ -1,4 +1,5 @@
 crush.sty
+crush/
 *.aux
 *.dvi
 *.glo
@@ -10,3 +11,5 @@ crush.sty
 *.out
 *.pdf
 *.toc
+*.zip
+*.tar.gz
