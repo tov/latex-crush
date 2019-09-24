@@ -1,29 +1,57 @@
-PDFLATEX	= pdflatex
-LATEX		= latex
-MAKEINDEX	= makeindex
-
 PKG		= crush
+
+LATEX		= latex
+LUALATEX	= lualatex
+MAKEINDEX	= makeindex
 
 all: $(PKG).sty $(PKG).pdf
 
 $(PKG).pdf: $(PKG).sty $(PKG).ind $(PKG).gls
 
-%.sty:	%.ins %.dtx
+###
+### General LaTeX rules
+###
+
+%.sty: %.ins %.dtx
 	$(RM) $@
 	$(LATEX) $<
 
-%.pdf:	%.dtx
+%.pdf: %.dtx
 	$(LATEX) $<
-	$(PDFLATEX) $<
+	$(LUALATEX) $<
 
-%.idx %.glo:	%.dtx %.sty
+%.idx %.glo: %.dtx %.sty
 	$(LATEX) $<
 
-%.ind:	%.idx
+%.ind: %.idx
 	$(MAKEINDEX) -s gind.ist $<
 
-%.gls:	%.glo
+%.gls: %.glo
 	$(MAKEINDEX) -s gglo.ist -o $@ $<
+
+###
+### Packaging
+###
+
+$(PKG).zip: $(PKG)/
+	zip -r $@ $^
+
+$(PKG).tar.gz: $(PKG)/
+	tar zcf $@ $^
+
+$(PKG)/:
+	rm -Rf $@
+	git clone file://`pwd` $@
+	make -C $@ dist
+
+dist:
+	make vclean
+	make all
+	make clean
+
+###
+### Cleaning
+###
 
 CLEAN = $(PKG).ind $(PKG).idx \
 	$(PKG).gls $(PKG).glo $(PKG).aux $(PKG).log \
